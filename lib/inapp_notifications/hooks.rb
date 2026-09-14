@@ -27,8 +27,11 @@ module InappNotifications
       {
         :base   => Redmine::Utils.relative_url_root.to_s,
         :unread => InappNotification.unread_count_for(User.current),
+        # Pozor: nikde `.json`. Prípona prepne Redmine do API vetvy autentizácie, tá
+        # ignoruje session a prihlásený človek dostane 403 (viď komentár v kontroleri).
         :paths  => {
           :index   => '/inapp_notifications',
+          :list    => '/inapp_notifications/list',
           :state   => '/inapp_notifications/state',
           :readAll => '/inapp_notifications/read_all'
         },

@@ -115,7 +115,21 @@ console.log('\n[4] Panel');
 await ev(`${BELL}.click()`);
 await waitFor(`${PANEL} && !${PANEL}.hidden`, 'otvorenie panelu');
 check('panel je otvoreny', await ev(`!${PANEL}.hidden`), true);
-await waitFor(`${PANEL}.querySelector('.rin-item, .rin-note')`, 'obsah panelu');
+/* POZOR na krehke cakanie: pri otvoreni panel najprv vykresli hlasku „Nacitavam…",
+   ktora je tiez `.rin-note`. Cakanie na `.rin-item, .rin-note` by teda preslo OKAMZITE
+   a riadky by sa spocitali este pred dorucenim odpovede — test potom hlasi 0 riadkov,
+   hoci ich panel o chvilu ma. Caka sa preto na DOKONCENY stav: bud su tam riadky,
+   alebo hlaska, ktora UZ NIE JE „nacitavam". */
+await waitFor(`(function(){
+  var p = ${PANEL};
+  if (!p || p.hidden) { return false; }
+  if (p.querySelectorAll('.rin-item').length) { return true; }
+  var note = p.querySelector('.rin-note');
+  /* Text hlásky sa berie zo stránky, nie natvrdo — inštancia môže byť v ktoromkoľvek
+     z troch jazykov a test nemá byť na jazyku závislý. */
+  var loading = ((window.RIN_CONFIG || {}).i18n || {}).loading;
+  return !!note && note.textContent !== loading;
+})()`, 'dokoncene nacitanie panelu', 30000);
 const count = await ev(`${ITEMS}.length`);
 console.log('  riadkov v paneli: ' + count);
 check('panel ma pätku s odkazmi', await ev(`${PANEL}.querySelectorAll('.rin-foot a').length`), 2);
@@ -140,6 +154,10 @@ if (count > 0) {
   const href = await ev(`${ITEMS}[0].getAttribute('href')`);
   console.log('  cielova adresa: ' + href);
   check('riadok je skutocny odkaz', typeof href === 'string' && href.length > 1, true);
+  /* `acts_as_event` vracia URL ako hash. Ked sa neprevedie na cestu, skonci v `href`
+     ako „[object Object]" a odkaz nikam nevedie — presne to sa raz stalo. */
+  check('href NIE JE [object Object]', href.indexOf('[object') < 0, true);
+  check('href je cesta v Redmine', /^\/?[a-z]/i.test(href) && href.indexOf('/issues') >= 0, true);
   /* Kotva na konkretny komentar je hlavny dovod, preco sa uklada odkaz na Journal
      a nie na Issue — klik ma skocit na tu zmenu, o ktorej notifikacia je. */
   const anyAnchor = await ev(`Array.prototype.some.call(${ITEMS},

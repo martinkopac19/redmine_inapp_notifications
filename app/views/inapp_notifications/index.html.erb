@@ -16,8 +16,15 @@
       <li class="rin-item <%= 'rin-unread' if row[:unread] %>">
         <span class="rin-dot" aria-hidden="true"></span>
         <div class="rin-body">
-          <%# `row[:url]` je hash z `event_url`, vrátane kotvy na konkrétny komentár. %>
-          <%= link_to row[:title].presence || "##{row[:id]}", row[:url], :class => 'rin-title' %>
+          <%# `row[:url]` je už hotová cesta (kontrolér ju zostavil z `event_url`),
+              vrátane kotvy na konkrétny komentár. Keď sa zostaviť nedala, zostane
+              riadok bez odkazu — lepšie než odkaz vedúci na aktuálnu stránku. %>
+          <% label = row[:title].presence || "##{row[:id]}" %>
+          <% if row[:url].present? %>
+            <%= link_to label, row[:url], :class => 'rin-title' %>
+          <% else %>
+            <span class="rin-title"><%= label %></span>
+          <% end %>
           <% if row[:snippet].present? %>
             <div class="rin-snippet"><%= row[:snippet] %></div>
           <% end %>

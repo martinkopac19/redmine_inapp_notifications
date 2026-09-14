@@ -212,7 +212,7 @@
     if (loading) { return; }
     loading = true;
 
-    request('/inapp_notifications.json')
+    request('/inapp_notifications/list')
       .then(function (data) {
         render(data.items || [], null);
         setBadge(data.unread);

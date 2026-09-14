@@ -4,26 +4,28 @@ class InappNotificationsController < ApplicationController
   before_action :require_login
   before_action :require_enabled
 
-  # Panel aj plná stránka. JSON obsluhuje zvonček, HTML je plnohodnotný zoznam
-  # so stránkovaním — a zároveň funkčný fallback, keď JS nebeží.
+  # Plná stránka so zoznamom. Zároveň funkčný fallback, keď JS nebeží.
   def index
-    respond_to do |format|
-      format.html do
-        @limit  = 50
-        @offset = (params[:page].to_i.clamp(1, 10_000) - 1) * @limit
-        @rows   = present(loader.list(:limit => @limit, :offset => @offset))
-        @page   = params[:page].to_i.clamp(1, 10_000)
-        # Ďalšia strana existuje, ak sa vrátil plný počet riadkov. Zámerne bez COUNT —
-        # ten by musel prejsť viditeľnosť, teda načítať všetky objekty.
-        @more   = @rows.size >= @limit
-        InappNotifications.purge_if_due!
-      end
-      format.json do
-        rows = present(loader.list(:limit => InappNotifications.panel_limit))
-        InappNotifications.purge_if_due!
-        render :json => { :items => rows, :unread => loader.unread_count }
-      end
-    end
+    @page   = params[:page].to_i.clamp(1, 10_000)
+    @limit  = 50
+    @offset = (@page - 1) * @limit
+    @rows   = present(loader.list(:limit => @limit, :offset => @offset))
+    # Ďalšia strana existuje, ak sa vrátil plný počet riadkov. Zámerne bez COUNT —
+    # ten by musel prejsť viditeľnosť, teda načítať všetky objekty.
+    @more   = @rows.size >= @limit
+    InappNotifications.purge_if_due!
+  end
+
+  # Obsah panelu pri zvončeku.
+  #
+  # Samostatná akcia namiesto `index.json`, a nie je to kozmetika: prípona `.json` v URL
+  # prepne Redmine do API vetvy (`api_request?`, application_controller.rb:723), tá session
+  # cookie ignoruje a prihlásený človek dostane `Current user: anonymous` a HTTP 403.
+  # Zistené naživo — panel hlásil „Notifikácie sa nepodarilo načítať".
+  def list
+    rows = present(loader.list(:limit => InappNotifications.panel_limit))
+    InappNotifications.purge_if_due!
+    render :json => { :items => rows, :unread => loader.unread_count }
   end
 
   # Ľahký endpoint pre odznak — bez načítavania objektov.
@@ -59,8 +61,25 @@ class InappNotificationsController < ApplicationController
   def present(rows)
     statuses = loader.statuses_for(rows)
     ActiveRecord::Base.cache do
-      rows.map { |r| InappNotifications::Presenter.new(r, :statuses => statuses).to_h }
+      rows.map do |r|
+        h = InappNotifications::Presenter.new(r, :statuses => statuses).to_h
+        h.merge(:url => path_for(h[:url]))
+      end
     end
+  end
+
+  # `acts_as_event` vracia URL ako HASH (`{controller:, action:, id:, anchor:}`).
+  # Do JSON-u musí ísť hotová cesta — JS ju dáva rovno do `href`, a hash by sa
+  # v reťazci vypísal ako „[object Object]" a odkaz by nikam neviedol.
+  # Prevádza sa až tu, lebo `url_for` je vec kontroléra, nie presentera.
+  def path_for(url)
+    return url if url.is_a?(String)
+    return nil if url.blank?
+
+    url_for(url.merge(:only_path => true))
+  rescue StandardError => e
+    Rails.logger&.warn("[inapp_notifications] URL sa nedala zostavit: #{e.class}: #{e.message}")
+    nil
   end
 
   def require_enabled
