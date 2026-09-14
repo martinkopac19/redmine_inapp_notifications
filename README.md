@@ -71,3 +71,9 @@ riadkoch). Obe sa preto v `Presenter`-i skladajú z predpočítanej mapy stavov.
 - Zmeny sa nezlučujú: každá je vlastný riadok, verne ako mail. Pri najaktívnejších ľuďoch to
   môže byť ~70 riadkov denne.
 - Panel sa neobnovuje sám — počet sa aktualizuje pri prechode na ďalšiu stránku.
+
+## Licencia
+
+Copyright (C) 2026 Martin Kopáč
+
+GPL-2.0-or-later, rovnako ako Redmine — viď [LICENSE](LICENSE).
