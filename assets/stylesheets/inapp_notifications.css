@@ -6,6 +6,30 @@
  * — téma teda vyhrá tam, kde existuje, a plugin funguje aj na holom Redmine bez Previo témy.
  */
 
+/* --- umiestnenie v hlavičke --------------------------------------------- */
+
+/* Zvonček patrí NAĽAVO OD PRÚTIKA AI, k účtu vpravo.
+ *
+ * Ako to v `#top-menu` funguje: téma dáva `margin-left: auto` na `#loggedas`, čím odtláča
+ * účet doprava. Odkaz presunutý pluginom je priame dieťa `#top-menu` bez `order`, dostal by
+ * teda `0` a skončil by PRED navigáciou (`order: 1`) — úplne vľavo.
+ *
+ * `redmine_ai_assistant` to už vyriešil tak, že prútik prevzal `margin-inline-start: auto`
+ * od `#loggedas`. Keď teraz pribudne zvonček PRED prútik, tá medzera zostane medzi nimi
+ * a zvonček visí osamote uprostred lišty. Preto sa rovnaká štafeta posúva o krok ďalej:
+ * keď je zvonček prítomný, medzeru drží ON a prútik aj meno ju majú vynulovanú.
+ *
+ * Selektory s `:has()` sú špecifickejšie než pravidlá v ai_assistant aj v téme, takže
+ * nezávisia od poradia načítania CSS.
+ */
+#top-menu > a.inapp-notifications {
+  order: 2;
+  margin-inline-start: auto;
+}
+
+#top-menu:has(> a.inapp-notifications) > a.raa-plan-link { margin-inline-start: 0; }
+#top-menu:has(> a.inapp-notifications) #loggedas { margin-left: 0; }
+
 /* --- zvonček ------------------------------------------------------------ */
 
 .inapp-notifications {
