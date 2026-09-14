@@ -32,7 +32,8 @@ module InappNotifications
         :paths  => {
           :index   => '/inapp_notifications',
           :list    => '/inapp_notifications/list',
-          :state   => '/inapp_notifications/state',
+          # ZAKOMENTOVANE 14. 9. 2026: JS cestu nepouziva, obnova na pozadi sa robit nebude.
+          # :state   => '/inapp_notifications/state',
           :readAll => '/inapp_notifications/read_all'
         },
         # Panel stavia JS, takže texty nemá odkiaľ vziať z ERB.

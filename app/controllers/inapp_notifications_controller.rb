@@ -30,9 +30,12 @@ class InappNotificationsController < ApplicationController
 
   # Ľahký endpoint pre odznak — bez načítavania objektov.
   # Používa ho obnova na pozadí (fáza 2) aj dorovnanie stavu po reconnecte (fáza 3).
-  def state
-    render :json => { :unread => InappNotification.unread_count_for(User.current) }
-  end
+  # ZAKOMENTOVANE 14. 9. 2026: obnova poctu na pozadi (faza 2) ani push (faza 3) sa robit
+  # nebudu (rozhodnutie zadavatela), takze endpoint nikto nevola. Kod zostava kvoli tomu, ze
+  # ozivenie je lacne: odkomentovat tu, v `config/routes.rb` a v `lib/inapp_notifications/hooks.rb`.
+  # def state
+  #   render :json => { :unread => InappNotification.unread_count_for(User.current) }
+  # end
 
   def read
     n = InappNotification.for_user(User.current).find_by(:id => params[:id])
