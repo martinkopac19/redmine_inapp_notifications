@@ -164,16 +164,30 @@
     return panel;
   }
 
+  /* Panel sa kotví k zvončeku, ale NIKDY nesmie vyliezť z okna.
+   *
+   * Pôvodná verzia ukotvila panel pravou hranou k zvončeku (`right: innerWidth - r.right`).
+   * To funguje, len kým je zvonček vpravo — keď skončil v ľavej časti hlavičky, panel
+   * odplával mimo obrazovky doľava a nebolo ho vidieť vôbec. Poloha sa preto počíta
+   * explicitne a orezáva sa na okno; kde presne zvonček v hlavičke je, prestalo hrať rolu.
+   */
   function positionPanel() {
     var link = bell();
     var p = buildPanel();
     if (!link) { return; }
 
     var r = link.getBoundingClientRect();
-    p.box.style.top = (r.bottom + 8) + 'px';
-    /* Ukotvené pravou hranou k zvončeku, aby panel nevyliezal z okna. */
-    var right = Math.max(8, window.innerWidth - r.right);
-    p.box.style.right = right + 'px';
+    var w = p.box.offsetWidth || 380;
+    var margin = 8;
+
+    /* Zarovnané pravou hranou k zvončeku, ale posunuté dnu, keby to nevychádzalo. */
+    var left = r.right - w;
+    left = Math.min(left, window.innerWidth - w - margin);
+    left = Math.max(margin, left);
+
+    p.box.style.top = (r.bottom + margin) + 'px';
+    p.box.style.left = left + 'px';
+    p.box.style.right = 'auto';
   }
 
   function isOpen() {
@@ -182,8 +196,10 @@
 
   function openPanel() {
     var p = buildPanel();
-    positionPanel();
+    /* Poradie je dôležité: `offsetWidth` skrytého prvku je 0, takže sa musí najprv
+     * zobraziť a až potom umiestniť — inak by výpočet polohy počítal so šírkou 0. */
     p.box.hidden = false;
+    positionPanel();
     render(null, i18n.loading || 'Loading…');
     load();
   }
