@@ -84,10 +84,22 @@ if (hasWand) {
 } else {
   console.log('  prutik AI na stranke nie je — poradie sa nedalo overit');
 }
-check('text je pre citacky, nie vidno ho',
+/* Popisok musi ZOSTAT v DOM (citacky obrazovky), ale nesmie byt vidiet.
+   Sposob skryvania sa zamerne NEKONTROLUJE — merat sa ma vysledok. Povodne to bolo
+   `overflow: hidden` + `text-indent`, lenze `overflow: hidden` orezal odznak s poctom,
+   takze sa preslo na `font-size: 0` (rovnako ako to robi tema s „Logged in as").
+   Test viazany na konkretny sposob by po tej oprave padol, hoci text vidno nebolo. */
+check('popisok je v DOM pre citacky',
+  await ev(`${BELL}.textContent.trim().length > 0`), true);
+check('ale nie je vidiet',
   await ev(`(function(){
-    var s = getComputedStyle(${BELL});
-    return ${BELL}.textContent.trim().length > 0 && (s.textIndent !== '0px' || s.overflow === 'hidden');
+    var b = ${BELL};
+    var range = document.createRange();
+    range.selectNodeContents(b);
+    var textW = 0;
+    Array.prototype.forEach.call(range.getClientRects(), function(r){ textW = Math.max(textW, r.width); });
+    /* Ikona je 18 px; keby bol popisok viditelny, prvok by bol vyrazne sirsi. */
+    return b.getBoundingClientRect().width <= 24;
   })()`), true);
 check('ma ikonu z CSS (nie holy text)',
   await ev(`getComputedStyle(${BELL}).backgroundImage.indexOf('svg') >= 0`), true);

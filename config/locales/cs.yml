@@ -7,7 +7,7 @@ cs:
     panel_error: "Notifikace se nepodařilo načíst."
     mark_all_read: "Označit vše jako přečtené"
     see_all: "Všechny notifikace"
-    mail_settings: "Nastavení e-mailů"
+    mail_settings: "Nastavení notifikací"
     page_title: "Notifikace"
     previous_page: "Novější"
     next_page: "Starší"

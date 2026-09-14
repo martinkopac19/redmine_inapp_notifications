@@ -7,7 +7,7 @@ sk:
     panel_error: "Notifikácie sa nepodarilo načítať."
     mark_all_read: "Označiť všetko ako prečítané"
     see_all: "Všetky notifikácie"
-    mail_settings: "Nastavenia e-mailov"
+    mail_settings: "Nastavenia notifikácií"
     page_title: "Notifikácie"
     previous_page: "Novšie"
     next_page: "Staršie"

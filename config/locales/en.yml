@@ -7,7 +7,7 @@ en:
     panel_error: "Could not load notifications."
     mark_all_read: "Mark all as read"
     see_all: "All notifications"
-    mail_settings: "E-mail settings"
+    mail_settings: "Notification settings"
     page_title: "Notifications"
     previous_page: "Newer"
     next_page: "Older"
