@@ -1,0 +1,45 @@
+<div class="box tabular settings">
+  <fieldset class="box">
+    <legend><%= l(:'inapp_notifications.legend_general') %></legend>
+    <p class="rin-hint"><%= l(:'inapp_notifications.note') %></p>
+
+    <p>
+      <label><%= l(:'inapp_notifications.setting_enabled') %></label>
+      <%# Efektívna hodnota, nie `settings[...]`. Redmine posiela do partialu ULOŽENÝ hash
+          z DB, takže kľúč, ktorý v ňom ešte nie je, by sa zobrazil ako vypnutý — a prvé
+          uloženie nastavení by funkciu naozaj vyplo. Presne to sa stalo v ai_assistant 0.6.4. %>
+      <%= hidden_field_tag 'settings[enabled]', '0', :id => nil %>
+      <%= check_box_tag 'settings[enabled]', '1',
+            InappNotifications.setting('enabled').to_s == '1' %>
+      <em class="info"><%= l(:'inapp_notifications.setting_enabled_info') %></em>
+    </p>
+
+    <p>
+      <label><%= l(:'inapp_notifications.setting_panel_limit') %></label>
+      <%= text_field_tag 'settings[panel_limit]',
+            InappNotifications.panel_limit.to_s, :size => 4 %>
+      <em class="info"><%= l(:'inapp_notifications.setting_panel_limit_info') %></em>
+    </p>
+
+    <p>
+      <label><%= l(:'inapp_notifications.setting_keep_read_days') %></label>
+      <%= text_field_tag 'settings[keep_read_days]',
+            InappNotifications.keep_read_days.to_s, :size => 4 %>
+      <em class="info"><%= l(:'inapp_notifications.setting_keep_read_days_info') %></em>
+    </p>
+
+    <p>
+      <label><%= l(:'inapp_notifications.setting_keep_all_days') %></label>
+      <%= text_field_tag 'settings[keep_all_days]',
+            InappNotifications.keep_all_days.to_s, :size => 4 %>
+      <em class="info"><%= l(:'inapp_notifications.setting_keep_all_days_info') %></em>
+    </p>
+
+    <p>
+      <label><%= l(:'inapp_notifications.setting_lazy_purge') %></label>
+      <%= hidden_field_tag 'settings[lazy_purge]', '0', :id => nil %>
+      <%= check_box_tag 'settings[lazy_purge]', '1', InappNotifications.lazy_purge? %>
+      <em class="info"><%= l(:'inapp_notifications.setting_lazy_purge_info') %></em>
+    </p>
+  </fieldset>
+</div>

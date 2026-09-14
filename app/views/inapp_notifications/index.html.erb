@@ -1,0 +1,49 @@
+<%# Plná stránka so zoznamom. Je to zároveň funkčný fallback, keď JS nebeží —
+    preto tu nie je nič, čo by závisel na paneli. %>
+<h2><%= l(:'inapp_notifications.page_title') %></h2>
+
+<div class="contextual">
+  <%= link_to l(:'inapp_notifications.mark_all_read'),
+              inapp_notifications_read_all_path,
+              :method => :post, :class => 'icon icon-checked' %>
+</div>
+
+<% if @rows.empty? %>
+  <p class="nodata"><%= l(:'inapp_notifications.panel_empty') %></p>
+<% else %>
+  <ul class="rin-list">
+    <% @rows.each do |row| %>
+      <li class="rin-item <%= 'rin-unread' if row[:unread] %>">
+        <span class="rin-dot" aria-hidden="true"></span>
+        <div class="rin-body">
+          <%# `row[:url]` je hash z `event_url`, vrátane kotvy na konkrétny komentár. %>
+          <%= link_to row[:title].presence || "##{row[:id]}", row[:url], :class => 'rin-title' %>
+          <% if row[:snippet].present? %>
+            <div class="rin-snippet"><%= row[:snippet] %></div>
+          <% end %>
+          <div class="rin-meta">
+            <%= row[:author] %>
+            <% if row[:at].present? %>
+              · <%= format_time(Time.parse(row[:at])) %>
+            <% end %>
+          </div>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+
+  <p class="pagination">
+    <% if @page > 1 %>
+      <%= link_to l(:'inapp_notifications.previous_page'),
+                  inapp_notifications_path(:page => @page - 1) %>
+    <% end %>
+    <% if @more %>
+      <%= link_to l(:'inapp_notifications.next_page'),
+                  inapp_notifications_path(:page => @page + 1) %>
+    <% end %>
+  </p>
+<% end %>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'inapp_notifications', :plugin => 'redmine_inapp_notifications' %>
+<% end %>
