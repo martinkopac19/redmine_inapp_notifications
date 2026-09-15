@@ -28,7 +28,7 @@ Redmine::Plugin.register :redmine_inapp_notifications do
   author 'Martin Kopáč'
   description 'A bell in the header with unread count and a panel listing what would ' \
               'otherwise only arrive by e-mail. E-mail keeps working unchanged.'
-  version '0.1.0'
+  version '0.1.1'
   url 'https://github.com/martinkopac19/redmine_inapp_notifications'
   requires_redmine version_or_higher: '6.0'
 

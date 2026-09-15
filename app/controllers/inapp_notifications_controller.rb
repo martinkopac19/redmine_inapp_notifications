@@ -45,9 +45,20 @@ class InappNotificationsController < ApplicationController
     render :json => { :unread => InappNotification.unread_count_for(User.current) }
   end
 
+  # Dvaja volajúci, dve odpovede. Panel pri zvončeku volá cez `fetch` a čaká JSON;
+  # odkaz na plnej stránke je ale obyčajný POST bez JS (rails-ujs pošle formulár),
+  # takže tomu treba vrátiť stránku. Kým to tu nebolo, človek po kliknutí na
+  # „Označiť všetko“ skončil v prehliadači na holom `{"unread": 0}` — označenie sa
+  # pritom vykonalo, len to vyzeralo ako chyba.
   def read_all
     InappNotification.for_user(User.current).unread.update_all(:read_on => Time.current)
-    render :json => { :unread => 0 }
+
+    if request.xhr? || request.format.json?
+      render :json => { :unread => 0 }
+    else
+      flash[:notice] = l(:notice_successful_update)
+      redirect_to inapp_notifications_path
+    end
   end
 
   private

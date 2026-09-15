@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1 - 2026-09-15
+
+- **Oprava: „Označiť všetko" na plnej stránke skončilo na holom JSON-e.** Odkaz tam nie je
+  volanie na pozadí ako v paneli, ale obyčajný POST cez rails-ujs — kontrolér ale vracal JSON
+  vždy, takže prehliadač zobrazil `{"unread": 0}` namiesto zoznamu. Označenie sa pritom
+  korektne vykonalo; navonok to vyzeralo ako chyba. `read_all` teraz odpovedá podľa volajúceho:
+  JSON pre `fetch` z panelu, presmerovanie späť na zoznam pre bežný request.
+
 ## 0.1.0 - 2026-09-14
 
 Prvá verzia — zber notifikácií, panel pri zvončeku a plná stránka.
