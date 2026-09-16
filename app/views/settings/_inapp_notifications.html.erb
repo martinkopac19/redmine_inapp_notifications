@@ -22,6 +22,13 @@
     </p>
 
     <p>
+      <label><%= l(:'inapp_notifications.setting_merge_window') %></label>
+      <%= text_field_tag 'settings[merge_window_minutes]',
+            (InappNotifications.merge_window.to_i / 60).to_s, :size => 4 %>
+      <em class="info"><%= l(:'inapp_notifications.setting_merge_window_info') %></em>
+    </p>
+
+    <p>
       <label><%= l(:'inapp_notifications.setting_keep_read_days') %></label>
       <%= text_field_tag 'settings[keep_read_days]',
             InappNotifications.keep_read_days.to_s, :size => 4 %>

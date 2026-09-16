@@ -21,6 +21,7 @@ require_relative 'lib/inapp_notifications/presenter'
 require_relative 'lib/inapp_notifications/loader'
 require_relative 'lib/inapp_notifications/mailer_patch'
 require_relative 'lib/inapp_notifications/member_patch'
+require_relative 'lib/inapp_notifications/reaction_patch'
 require_relative 'lib/inapp_notifications/hooks'
 
 Redmine::Plugin.register :redmine_inapp_notifications do
@@ -28,7 +29,7 @@ Redmine::Plugin.register :redmine_inapp_notifications do
   author 'Martin Kopáč'
   description 'A bell in the header with unread count and a panel listing what would ' \
               'otherwise only arrive by e-mail. E-mail keeps working unchanged.'
-  version '0.1.1'
+  version '0.2.0'
   url 'https://github.com/martinkopac19/redmine_inapp_notifications'
   requires_redmine version_or_higher: '6.0'
 
@@ -58,4 +59,9 @@ end
 
 unless Member.included_modules.include?(InappNotifications::MemberPatch)
   Member.include(InappNotifications::MemberPatch)
+end
+
+# Reakcie sa pri odlajkovani mazu, takze notifikaciu treba stiahnut hned - viac v patchi.
+if defined?(Reaction) && !Reaction.included_modules.include?(InappNotifications::ReactionPatch)
+  Reaction.include(InappNotifications::ReactionPatch)
 end

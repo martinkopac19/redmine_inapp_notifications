@@ -21,7 +21,7 @@ module InappNotifications
 
     # Vracia pole `Row` — notifikácia + jej živý, viditeľný zdroj.
     def list(limit: InappNotifications.panel_limit, offset: 0)
-      rows = InappNotification.for_user(@user).recent.limit(limit).offset(offset).to_a
+      rows = InappNotification.for_user(@user).active.recent.limit(limit).offset(offset).to_a
       return [] if rows.empty?
 
       loaded = load_objects(rows)
@@ -45,6 +45,17 @@ module InappNotifications
       @statuses ||= IssueStatus.all.index_by(&:id)
     end
 
+    # Mapa `id => User` pre riadky o reakciách — kto dal 👍. Zdrojom takého riadku je
+    # objekt, NA KTORÝ sa reagovalo (aby prepínanie lajku nevyrábalo ďalšie a ďalšie
+    # notifikácie), takže autora z neho vyčítať nejde. Jeden dotaz na celý zoznam.
+    def actors_for(rows)
+      ids = rows.filter_map { |r| r.notification.actor_id if r.notification.event == Events::REACTION }
+                .uniq.reject(&:zero?)
+      return {} if ids.empty?
+
+      User.where(:id => ids).index_by(&:id)
+    end
+
     # Autoritatívny počet neprečítaných — teda po odfiltrovaní toho, čo človek nesmie vidieť.
     # Odznak v hlavičke počíta surovo (viď `InappNotification.unread_count_for`); týmto číslom
     # ho panel po otvorení prepíše, takže sa prípadný rozdiel sám opraví.
@@ -53,7 +64,7 @@ module InappNotifications
     # načítavať 800 objektov. Nad strop sa ukáže „99+" a to je aj tak všetko, čo sa do odznaku
     # zmestí.
     def unread_count(cap: 100)
-      rows = InappNotification.for_user(@user).unread.recent.limit(cap).to_a
+      rows = InappNotification.for_user(@user).unread.active.recent.limit(cap).to_a
       return 0 if rows.empty?
 
       loaded = load_objects(rows)

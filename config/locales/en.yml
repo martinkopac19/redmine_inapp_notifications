@@ -18,6 +18,8 @@ en:
     setting_enabled_info: "Turning this off hides the bell and stops recording new notifications. Existing ones are kept."
     setting_panel_limit: "Rows in the panel"
     setting_panel_limit_info: "How many notifications the bell panel shows. The full page is paginated and not affected. 5-100."
+    setting_merge_window: "Reaction merge window (minutes)"
+    setting_merge_window_info: "If somebody removes a like and gives it again within this time, it stays a single notification instead of piling up. 1-1440, 30 by default."
     setting_keep_read_days: "Keep read notifications (days)"
     setting_keep_read_days_info: "Read notifications have served their purpose, so they go first. Default 30."
     setting_keep_all_days: "Keep everything (days)"

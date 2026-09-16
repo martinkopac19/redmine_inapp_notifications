@@ -101,7 +101,44 @@ ActiveRecord::Base.transaction do
       Mailer.with_synched_deliveries { Mailer.deliver_reaction_added(reaction, target.user) }
       created = InappNotification.count - b
       puts "  lajk vytvori notifikaciu    : #{ok(created.positive?)} (pribudlo #{created})"
-      puts "  a ma spravny source         : #{ok(InappNotification.where(:source_type => 'Reaction', :source_id => reaction.id).exists?)}"
+      # Zdrojom je OBJEKT, na ktory sa reagovalo, a v actor_id je ten, kto lajkol.
+      # Keby to bolo id reakcie, kazde odlajkovanie a opatovne lajknutie by vyrobilo
+      # dalsiu notifikaciu — to bola chyba "34 na zvonceku, 2 v zozname".
+      row = InappNotification.where(:event => 'reaction_added',
+                                    :source_type => target.class.name,
+                                    :source_id   => target.id,
+                                    :actor_id    => reactor.id).first
+      puts "  kluc je (objekt, kto lajkol): #{ok(!row.nil?)}"
+
+      # --- prepinanie lajku ---------------------------------------------------
+      before_toggle = InappNotification.count
+      recipient     = target.user
+      5.times do
+        reaction.destroy
+        reaction = Reaction.new(:reactable => target, :user => reactor)
+        reaction.save!
+        Mailer.with_synched_deliveries { Mailer.deliver_reaction_added(reaction, recipient) }
+      end
+      puts "  5x vypnut/zapnut = 0 novych : #{ok(InappNotification.count == before_toggle)}"
+      row.reload
+      puts "  a je to stale ten isty riadok: #{ok(row.retracted_on.nil?)}"
+
+      # --- odlajkovanie stiahne notifikaciu HNED, nie az pri otvoreni panelu ---
+      unread_before = InappNotification.unread_count_for(recipient)
+      reaction.destroy
+      row.reload
+      puts "  odlajkovanie riadok stiahne : #{ok(!row.retracted_on.nil?)}"
+      puts "  odznak klesne ihned         : #{ok(InappNotification.unread_count_for(recipient) < unread_before)}"
+      puts "  stiahnuty riadok sa nevykresli: #{ok(InappNotifications::Loader.new(recipient).list(:limit => 50).none? { |r| r.notification.id == row.id })}"
+
+      # --- opatovny lajk do okna vrati POVODNY riadok, nevyrobi novy ----------
+      before_relike = InappNotification.count
+      reaction = Reaction.new(:reactable => target, :user => reactor)
+      reaction.save!
+      Mailer.with_synched_deliveries { Mailer.deliver_reaction_added(reaction, recipient) }
+      row.reload
+      puts "  relajk nevyrobi novy riadok : #{ok(InappNotification.count == before_relike)}"
+      puts "  a povodny sa vrati          : #{ok(row.retracted_on.nil?)}"
     else
       puts "  lajk                        : (preskocene — reakciu sa nepodarilo vytvorit)"
     end

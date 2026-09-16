@@ -39,6 +39,22 @@ Text sa vykresľuje za behu z natívneho `acts_as_event` daného objektu. Dôvod
 keď človek stratí právo na úlohu, nemá v paneli zostať svietiť jej názov — a keby sme si text
 odložili, museli by sme ho pri každej zmene práv niekde dohľadávať.
 
+### Reakcie (👍) sú výnimka
+
+Riadok o lajku nedrží odkaz na reakciu, ale na **objekt, na ktorý sa reagovalo**, plus
+`actor_id` toho, kto lajkol. Dôvod je praktický: Redmine pri odlajkovaní riadok
+v `reactions` zmaže a pri opätovnom lajku vytvorí nový s iným id, takže odkaz na reakciu
+sa pri každom prepnutí zmení a unique index nemá čo dedupovať. Dvojica (objekt, kto
+lajkol) prepínanie prežije.
+
+Odobratie lajku riadok **nemaže**, len ho označí ako stiahnutý (`retracted_on`) — z odznaku
+aj zo zoznamu zmizne okamžite, ale keď ten istý človek lajk do **okna na zlučovanie**
+(predvolene 30 minút) vráti, použije sa ten istý záznam. Kto teda lajk stokrát vypne
+a zapne, pošle jedinú notifikáciu. Po uplynutí okna je to nová udalosť.
+
+**E-mailov sa to netýka** — tie posiela `redmine_notify_reactions` a ten pošle jeden mail
+za každý lajk.
+
 Pri každom čítaní sa preto kontroluje viditeľnosť. Pre úlohy a komentáre cez **scope**
 `Journal.visible(user)`, nie cez `Journal#visible?` — inštančná metóda o súkromných poznámkach
 nevie a bola by to diera.

@@ -8,7 +8,7 @@ module InappNotifications
   # Document aj Attachment. Overené na živej inštancii; `event_url` navyše nesie kotvu
   # na konkrétny komentár, takže klik v paneli skočí presne naň.
   #
-  # ŠTYRI TRIEDY `acts_as_event` NEMAJÚ (tiež overené): Comment, WikiContent, Reaction
+  # TRI TRIEDY `acts_as_event` NEMAJÚ (tiež overené): Comment, WikiContent
   # a RemindMeReminder. Pre ne sú nižšie krátke adaptéry. Nie je to zbytočná abstrakcia —
   # jadro tie triedy jednoducho neimplementuje a bez adaptéra by panel na nich spadol.
   class Presenter
@@ -22,10 +22,13 @@ module InappNotifications
     #
     # Preto sa nadpis pre Journal skladá tu, z už preloadnutých dát. Formát je znak na znak
     # rovnaký ako v jadre (`journal.rb`), aby panel vyzeral ako zvyšok Redmine.
-    def initialize(row, statuses: {})
+    def initialize(row, statuses: {}, actors: {})
       @n        = row.notification
       @source   = row.source
       @statuses = statuses
+      # Mapa `id => User` pre riadky o reakciách. Zdrojom riadku je objekt, NA KTORÝ
+      # sa reagovalo, takže kto lajkol sa z neho vyčítať nedá — je v `actor_id`.
+      @actors   = actors
     end
 
     def to_h
@@ -45,7 +48,7 @@ module InappNotifications
     private
 
     def adapter?
-      %w[Comment WikiContent Reaction RemindMeReminder].include?(@n.source_type)
+      %w[Comment WikiContent RemindMeReminder].include?(@n.source_type)
     end
 
     def title
@@ -82,8 +85,14 @@ module InappNotifications
       text.length > 300 ? "#{text[0, 300]}…" : text
     end
 
+    def reaction?
+      @n.event == Events::REACTION
+    end
+
     def author_name
-      person = if adapter?
+      person = if reaction?
+                 @actors[@n.actor_id]
+               elsif adapter?
                  adapter_author
                else
                  safe { @source.event_author }
@@ -100,6 +109,8 @@ module InappNotifications
     # Typ pre ikonu v paneli. Jadro vracia veci ako `issue-note`, `issue-closed`,
     # `issue-edit` — používa sa priamo, aby panel vyzeral ako zvyšok Redmine.
     def icon_type
+      # Riadok o lajku má zdroj Issue alebo Journal, takže by inak dostal ikonu úlohy.
+      return 'reaction' if reaction?
       return @n.source_type.underscore.dasherize if adapter?
       # Aj `event_type` Journalu volá `new_status`, teda ďalší `IssueStatus.find_by_id`
       # na každý riadok — rovnaká pasca ako pri nadpise. Skladá sa preto tu, z mapy.
@@ -122,7 +133,6 @@ module InappNotifications
       case @source
       when Comment          then "#{@source.commented.try(:title)}"
       when WikiContent      then @source.page&.pretty_title.to_s
-      when Reaction         then reaction_title
       when RemindMeReminder then @source.issue ? "#{@source.issue.tracker&.name} ##{@source.issue.id}: #{@source.issue.subject}" : ''
       else ''
       end
@@ -132,7 +142,6 @@ module InappNotifications
       case @source
       when Comment          then @source.comments.to_s
       when WikiContent      then @source.text.to_s
-      when Reaction         then ''
       when RemindMeReminder then @source.note.to_s
       else ''
       end
@@ -142,7 +151,6 @@ module InappNotifications
       case @source
       when Comment          then @source.author
       when WikiContent      then @source.author
-      when Reaction         then @source.user
       when RemindMeReminder then @source.user
       end
     end
@@ -160,29 +168,8 @@ module InappNotifications
 
         { :controller => 'wiki', :action => 'show', :project_id => page.wiki&.project,
           :id => page.title }
-      when Reaction
-        reaction_url
       when RemindMeReminder
         @source.issue ? { :controller => 'issues', :action => 'show', :id => @source.issue_id } : {}
-      else {}
-      end
-    end
-
-    def reaction_title
-      target = @source.reactable
-      case target
-      when Issue   then "#{target.tracker&.name} ##{target.id}: #{target.subject}"
-      when Journal then target.issue ? "#{target.issue.tracker&.name} ##{target.issue.id}: #{target.issue.subject}" : ''
-      else target.try(:title).to_s.presence || target.class.name
-      end
-    end
-
-    def reaction_url
-      target = @source.reactable
-      case target
-      when Issue   then { :controller => 'issues', :action => 'show', :id => target.id }
-      when Journal then { :controller => 'issues', :action => 'show', :id => target.journalized_id,
-                          :anchor => "change-#{target.id}" }
       else {}
       end
     end

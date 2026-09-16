@@ -18,6 +18,17 @@ module InappNotifications
     # `acts_as_event` aj `visible?`, takže sa hodí lepšie.
     ATTACHMENTS = 'attachments_added'
 
+    # Reakcia (👍) je jediná udalosť, pri ktorej sa NEUKLADÁ objekt, ktorý poslal mailer.
+    # Dôvod: Redmine pri odlajkovaní riadok v `reactions` ZMAŽE a pri opätovnom lajku
+    # vytvorí nový s iným id, takže by každé prepnutie vyrobilo ďalšiu notifikáciu o tom
+    # istom. Ukladá sa preto objekt, NA KTORÝ sa reagovalo, a v `actor_id` ten, kto lajkol
+    # — tá dvojica prepínanie prežije. Viď `Capture#write_reaction`.
+    REACTION = 'reaction_added'
+
+    # Na čo sa dá reagovať. Zoznam je pevný, nie odvodený — `source_type` ide cez databázu
+    # a loader ho prekladá cez whitelist, nie cez `constantize`.
+    REACTABLES = %w[Issue Journal].freeze
+
     # Naše vlastné pluginy tu nie sú omylom — `redmine_notify_reactions` a `redmine_remind_me`
     # pridávajú akcie `include`-om do jadrového `Mailer`, takže idú cez ten istý `process`.
     # Dostávame ich zadarmo a v tých pluginoch sa nemení ani riadok.
@@ -31,9 +42,12 @@ module InappNotifications
       'wiki_content_updated' => 'WikiContent',
       'document_added'       => 'Document',
       ATTACHMENTS            => 'Attachment',
-      'reaction_added'       => 'Reaction',
+      REACTION               => REACTABLES,
       'remind_me_due'        => 'RemindMeReminder'
     }.freeze
+
+    # Všetky typy, ktoré sa v `source_type` smú objaviť.
+    SOURCE_TYPES = MAP.values.flatten.uniq.freeze
 
     # Preklad `source_type` z databázy na triedu. NIKDY `constantize`:
     #   * `source_type` je síce náš zápis, ale ide cez DB a ta je mimo tohto kódu,
@@ -41,7 +55,7 @@ module InappNotifications
     #     riadkoch hodil NameError a zhodil by hlavičku KAŽDEJ stránky. Takto sa taký riadok
     #     len ticho preskočí a purge ho zmaže.
     def self.klass_for(source_type)
-      return nil unless MAP.value?(source_type)
+      return nil unless SOURCE_TYPES.include?(source_type)
 
       Object.const_defined?(source_type) ? Object.const_get(source_type) : nil
     end
@@ -50,8 +64,10 @@ module InappNotifications
       MAP.key?(action_name.to_s)
     end
 
-    def self.source_type_for(action_name)
-      MAP[action_name.to_s]
+    # Vracia vždy pole — `reaction_added` má dva možné typy zdroja (Issue a Journal),
+    # ostatné akcie jeden.
+    def self.source_types_for(action_name)
+      Array(MAP[action_name.to_s])
     end
 
     # Čo preloadnúť pri vykresľovaní zoznamu. Bez toho by 20 riadkov znamenalo stovky
@@ -69,7 +85,6 @@ module InappNotifications
       'WikiContent'      => [:author, { page: { wiki: :project } }],
       'Document'         => [:project, :attachments],
       'Attachment'       => %i[author container],
-      'Reaction'         => %i[user reactable],
       'RemindMeReminder' => [{ issue: %i[tracker status project] }]
     }.freeze
 

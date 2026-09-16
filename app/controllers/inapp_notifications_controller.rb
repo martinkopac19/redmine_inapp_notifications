@@ -74,9 +74,10 @@ class InappNotificationsController < ApplicationController
   #     na `attachments.reorder(...).first`.
   def present(rows)
     statuses = loader.statuses_for(rows)
+    actors   = loader.actors_for(rows)
     ActiveRecord::Base.cache do
       rows.map do |r|
-        h = InappNotifications::Presenter.new(r, :statuses => statuses).to_h
+        h = InappNotifications::Presenter.new(r, :statuses => statuses, :actors => actors).to_h
         h.merge(:url => path_for(h[:url]))
       end
     end

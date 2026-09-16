@@ -18,6 +18,8 @@ cs:
     setting_enabled_info: "Vypnutím zmizí zvoneček a přestanou se zaznamenávat nové notifikace. Existující zůstanou."
     setting_panel_limit: "Počet řádků v panelu"
     setting_panel_limit_info: "Kolik notifikací ukáže panel u zvonečku. Plná stránka má stránkování a toto se jí netýká. 5-100."
+    setting_merge_window: "Okno pro slučování reakcí (minuty)"
+    setting_merge_window_info: "Když někdo v tomto čase lajk odebere a zase dá, zůstane jediná notifikace místo další a další. 1-1440, výchozí 30."
     setting_keep_read_days: "Držet přečtené (dny)"
     setting_keep_read_days_info: "Přečtené už splnily účel, proto mizí dřív. Výchozí 30."
     setting_keep_all_days: "Držet vše (dny)"

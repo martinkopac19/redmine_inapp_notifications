@@ -18,6 +18,8 @@ sk:
     setting_enabled_info: "Vypnutím zmizne zvonček a prestanú sa zaznamenávať nové notifikácie. Existujúce zostanú."
     setting_panel_limit: "Počet riadkov v paneli"
     setting_panel_limit_info: "Koľko notifikácií ukáže panel pri zvončeku. Plná stránka má stránkovanie a toto sa jej netýka. 5-100."
+    setting_merge_window: "Okno na zlučovanie reakcií (minúty)"
+    setting_merge_window_info: "Keď niekto v tomto čase lajk odoberie a zase dá, zostane jediná notifikácia namiesto ďalšej a ďalšej. 1-1440, predvolene 30."
     setting_keep_read_days: "Držať prečítané (dni)"
     setting_keep_read_days_info: "Prečítané už splnili účel, preto miznú skôr. Predvolené 30."
     setting_keep_all_days: "Držať všetko (dni)"

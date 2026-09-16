@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.2.0 - 2026-09-16
+
+**Oprava: prepínanie lajku vyrábalo notifikáciu za notifikáciou.** Kto dal a odobral 👍
+tridsaťkrát, poslal adresátovi tridsať notifikácií — a odznak ukazoval 34, kým panel
+zobrazil dve. Boli to dve chyby naraz:
+
+- Notifikácia bola naviazaná na **konkrétnu reakciu**. Redmine pri odlajkovaní riadok
+  v `reactions` zmaže a pri opätovnom lajku vytvorí nový s iným id, takže unique index
+  nemal čo dedupovať. Kľúčom je teraz **dvojica (objekt, kto lajkol)**, ktorá prepínanie
+  prežije — pribudol stĺpec `actor_id` a je súčasťou unique indexu.
+- Odobratie lajku notifikáciu **nezahodilo hneď**. Riadok zostal visieť a odznak ho
+  počítal, lebo je to surový COUNT, ktorý sa k zdrojovým objektom nepozerá; zahodilo ho
+  až otvorenie panelu. Teraz sa pri odobratí označí ako stiahnutý (`retracted_on`)
+  a z odznaku aj zo zoznamu zmizne okamžite.
+
+Riadok sa pri odobratí **nemaže**, len prestane platiť. Vďaka tomu vie opätovný lajk
+**do 30 minút** použiť ten istý záznam a nevyrobiť druhú notifikáciu o tom istom — a keď
+ho človek už čítal, odznak mu druhýkrát nenaskočí. Po uplynutí okna je to nová udalosť.
+Dĺžka okna je nastaviteľná (*Administration → Plugins*), predvolene 30 minút, rovnako ako
+okno na zlučovanie úprav popisu v `redmine_rich_editor`.
+
+Migrácia existujúce riadky prepíše na nový kľúč; mŕtve a duplicitné zahodí.
+
+**Pozor — e-mailov sa to netýka.** Tie posiela `redmine_notify_reactions` a ten stále
+pošle jeden mail za každý lajk. Toto zlučovanie platí len pre zvonček.
+
 ## 0.1.1 - 2026-09-15
 
 - **Oprava: „Označiť všetko" na plnej stránke skončilo na holom JSON-e.** Odkaz tam nie je

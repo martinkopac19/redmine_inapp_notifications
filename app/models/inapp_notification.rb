@@ -5,6 +5,10 @@ class InappNotification < ActiveRecord::Base
 
   scope :unread,   -> { where(:read_on => nil) }
   scope :for_user, ->(user) { where(:user_id => user.id) }
+  # Stiahnuté = udalosť bola vzatá späť (odlajkované). Riadok sa NEMAŽE, aby sa pri
+  # opätovnom lajku do okna dal použiť ten istý záznam namiesto novej notifikácie —
+  # nikde sa však nepočíta ani nezobrazuje.
+  scope :active,   -> { where(:retracted_on => nil) }
   # Radí sa podľa `id`, nie podľa `created_on`: id je monotónne a je v indexe
   # `[user_id, id]`, takže zoznam ide bez triedenia navyše. Pri dvoch notifikáciách
   # v tej istej sekunde navyše dáva stabilné poradie.
@@ -26,6 +30,6 @@ class InappNotification < ActiveRecord::Base
   def self.unread_count_for(user)
     return 0 unless user&.logged?
 
-    for_user(user).unread.count
+    for_user(user).unread.active.count
   end
 end

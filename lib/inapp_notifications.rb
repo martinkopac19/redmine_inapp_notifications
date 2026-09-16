@@ -8,6 +8,10 @@ module InappNotifications
     # Retencia. Prečítané zmiznú skôr — už splnili účel.
     'keep_read_days' => '30',
     'keep_all_days'  => '180',
+    # Okno na zlučovanie reakcií: keď niekto lajk v tomto čase odoberie a zase dá,
+    # zostáva jediná notifikácia. Rovnaká hodnota, akú má okno na zlučovanie úprav
+    # popisu v `redmine_rich_editor` — nech to človeku dáva rovnaký zmysel.
+    'merge_window_minutes' => '30',
     # Lazy purge: upratovanie sa spustí najviac raz za deň, v requeste, ktorý práve
     # renderuje panel. Zámerne bez cronu — cron je ďalšia vec, ktorá sa dá zabudnúť
     # nastaviť pri sťahovaní na ďalší server (`redmine_remind_me` to odniesol).
@@ -47,6 +51,16 @@ module InappNotifications
 
     def lazy_purge?
       setting('lazy_purge').to_s == '1'
+    end
+
+    # POZOR: rozhoduje TENTO fallback, nie default v `init.rb`. V DB je v riadku nastavení
+    # uložené len to, čo sa raz cez administráciu uložilo — kľúč, ktorý tam nikdy nebol,
+    # sa z defaultov nedoplní. Rovnakú pascu už raz odniesol `redmine_rich_editor`.
+    def merge_window
+      n = setting('merge_window_minutes').to_i
+      n = 30 if n <= 0
+
+      n.clamp(1, 1440).minutes
     end
 
     # Zmaže, čo už nikto nepotrebuje. Dva indexované DELETE-y, nič viac.
