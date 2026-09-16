@@ -46,6 +46,10 @@ ActiveRecord::Base.transaction do
   puts "\n[2] Zachyt notifikacie z realneho mailu"
   issue = Issue.where.not(:assigned_to_id => nil).order(:id => :desc).first
   recipients = issue.notified_users
+  # Na zivom serveri uz o tejto ulohe notifikacie existovat MOZU — vznikli realnou
+  # prevadzkou. Unique index by potom spravne zabranil duplicite a test by meral nulu.
+  # Vsetko bezi v transakcii s rollbackom, takze sa smu pokojne zmazat.
+  InappNotification.where(:source_type => 'Issue', :source_id => issue.id).delete_all
   before = InappNotification.count
   ActionMailer::Base.deliveries.clear
   Mailer.with_synched_deliveries { Mailer.deliver_issue_add(issue) }
@@ -62,7 +66,9 @@ ActiveRecord::Base.transaction do
   # Toto je test, že sa rozhodujeme z `message.to` a nie z argumentu akcie.
   puts "\n[3] Autor vlastnej zmeny"
   author = issue.author
-  puts "  autor nema riadok           : #{ok(!InappNotification.where(:user_id => author.id, :source_id => issue.id, :source_type => 'Issue').exists?)}" \
+  # Filtruje sa AJ podla udalosti: na tej istej ulohe moze mat autor riadok o lajku,
+  # ktory s no_self_notified nema nic spolocne.
+  puts "  autor nema riadok           : #{ok(!InappNotification.where(:user_id => author.id, :source_id => issue.id, :source_type => 'Issue', :event => 'issue_add').exists?)}" \
        "#{author.pref.no_self_notified ? '' : ' (pozn.: autor ma no_self_notified vypnute)'}"
 
   # --- 4. whitelist ----------------------------------------------------------
