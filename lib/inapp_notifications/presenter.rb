@@ -39,6 +39,7 @@ module InappNotifications
         :title   => title,
         :snippet => snippet,
         :author  => author_name,
+        :action  => action_label,
         :url     => url,
         :at      => @n.created_on&.iso8601,
         :unread  => !@n.read?
@@ -98,6 +99,16 @@ module InappNotifications
                  safe { @source.event_author }
                end
       person.respond_to?(:name) ? person.name : person.to_s
+    end
+
+    # Pri lajku riadok inak vyzerá presne ako komentár a po kliknutí nie je jasné, prečo
+    # tam človek prišiel. Adresát je vždy autor lajknutej veci (tak mail posiela
+    # `redmine_notify_reactions`), preto „your".
+    def action_label
+      return nil unless reaction?
+
+      key = @n.source_type == 'Journal' ? 'reaction_journal' : 'reaction_issue'
+      ::I18n.t(key, :scope => :inapp_notifications)
     end
 
     def url

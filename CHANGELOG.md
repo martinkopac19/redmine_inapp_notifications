@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.1 - 2026-09-25
+
+**Lajk sa už nepletie s komentárom.** Riadok o 👍 vyzeral v paneli rovnako ako
+riadok o novom komentári, takže po kliknutí do úlohy nebolo jasné, prečo tam človek
+prišiel. Za menom teraz stojí, čo sa stalo — *„Lukáš Hanáček liked your comment · 2 d"*,
+resp. *liked your task* (česky „dává palec nahoru vašemu komentáři", slovensky „dáva
+palec hore vášmu komentáru"). Platí pre panel aj plnú stránku; ostatných notifikácií
+sa zmena netýka.
+
 ## 0.2.0 - 2026-09-16
 
 **Oprava: prepínanie lajku vyrábalo notifikáciu za notifikáciou.** Kto dal a odobral 👍

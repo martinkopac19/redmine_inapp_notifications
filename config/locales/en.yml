@@ -8,6 +8,8 @@ en:
     mark_all_read: "Mark all as read"
     see_all: "All notifications"
     mail_settings: "Notification settings"
+    reaction_issue: "liked your task"
+    reaction_journal: "liked your comment"
     page_title: "Notifications"
     previous_page: "Newer"
     next_page: "Older"

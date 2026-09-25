@@ -8,6 +8,8 @@ sk:
     mark_all_read: "Označiť všetko ako prečítané"
     see_all: "Všetky notifikácie"
     mail_settings: "Nastavenia notifikácií"
+    reaction_issue: "dáva palec hore vašej úlohe"
+    reaction_journal: "dáva palec hore vášmu komentáru"
     page_title: "Notifikácie"
     previous_page: "Novšie"
     next_page: "Staršie"

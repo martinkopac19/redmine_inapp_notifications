@@ -29,7 +29,7 @@
             <div class="rin-snippet"><%= row[:snippet] %></div>
           <% end %>
           <div class="rin-meta">
-            <%= row[:author] %>
+            <%= [row[:author], row[:action]].compact_blank.join(' ') %>
             <% if row[:at].present? %>
               · <%= format_time(Time.parse(row[:at])) %>
             <% end %>

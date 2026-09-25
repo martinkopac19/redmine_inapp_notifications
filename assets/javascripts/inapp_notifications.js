@@ -274,7 +274,9 @@
 
     var meta = document.createElement('div');
     meta.className = 'rin-meta';
-    meta.textContent = [item.author, relTime(item.at)].filter(Boolean).join(' · ');
+    /* Pri lajku `action` = „liked your comment", aby sa riadok nemýlil s komentárom. */
+    var who = [item.author, item.action].filter(Boolean).join(' ');
+    meta.textContent = [who, relTime(item.at)].filter(Boolean).join(' · ');
     wrap.appendChild(meta);
 
     el.appendChild(wrap);
